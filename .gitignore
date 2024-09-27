@@ -1,2 +1,7 @@
 Fashion-How_2024_subtask4/
 .DS_Store
+test.db
+__pycache__/
+*.pyc
+*.pyo
+alembic.ini
