@@ -1,16 +1,8 @@
 ## 프레임워크 의존성
-fastapi
-uvicorn
-jinja2
-sqlalchemy
-pillow
-passlib
-python-multipart # 파일 업로드 처리용
-bcrypt
-itsdangerous
-requests
-uuid
-alembic
+streamlit
+## 챗봇
+openai
+
 
 ## Segmentation 모델 의존성
 # torch
