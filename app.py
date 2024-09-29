@@ -10,14 +10,7 @@ if 'logged_in' not in st.session_state:
     st.session_state['id'] = ""
     st.session_state['api_key'] = ""
 
-def login():
-    if st.button("Log in"):
-        
-        st.session_state.logged_in = True
-        st.rerun()
-
 def logout():
-
     st.session_state.logged_in = False
     st.session_state['id'] = ""
     st.session_state['api_key'] = ""
@@ -28,7 +21,7 @@ login_page = st.Page("services/login.py", title="Log in", icon=":material/login:
 logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
 
 chatbot = st.Page(
-    "services/chatbot.py", title="Dashboard", icon=":material/dashboard:", default=True
+    "services/chatbot.py", title="챗봇", icon=":material/chat:", default=True
 )
 browse = st.Page("services/browse.py", title="Bug reports", icon=":material/bug_report:")
 register = st.Page(

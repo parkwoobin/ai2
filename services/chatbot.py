@@ -1,51 +1,67 @@
 import streamlit as st
-
-
+from db import update_api_key, get_api_key
+import os
+import time
 
 def stream_data(response):
     for word in response.split(" "):
         yield word + " "
         time.sleep(0.02)
+        
+# 대화 기록 초기화
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
 
-def render():
+# 챗봇 페이지
+def show_chatbot_page():
+    st.title("패션 도우미")
+
+    # API 키가 세션에 이미 있는 경우 자동 입력
     with st.sidebar:
-        openai_api_key = st.text_input("OpenAI API Key", key="langchain_search_api_key_openai", type="password")
-        openai_model = st.selectbox("OpenAI Model", ["gpt-3.5-turbo", "gpt-4-turbo"], key="langchain_search_model")
-        "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-        "[View the source code](https://github.com/streamlit/llm-examples/blob/main/pages/2_Chat_with_search.py)"
-        "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+        api_key_input = st.text_input("API 키 입력", value=st.session_state['api_key'])
+        if st.button("API 키 저장"):
+            st.session_state['api_key'] = api_key_input
+            # 현재 로그인된 사용자가 있는지 확인
+            if 'username' in st.session_state:
+                update_api_key(st.session_state['username'], api_key_input)  # DB에 API 키 저장
+                st.success("API 키가 저장되었습니다.")
+            else:
+                st.error("로그인되어 있지 않습니다.")
 
-    st.title("🔎 LangChain - Chat with search")
+        uploaded_file = st.file_uploader("이미지를 업로드하세요", type=["jpg", "jpeg", "png"],label_visibility="collapsed")
+    
+    
 
-    """
-    In this example, we're using `StreamlitCallbackHandler` to display the thoughts and actions of an agent in an interactive Streamlit app.
-    Try more LangChain 🤝 Streamlit Agent examples at [github.com/langchain-ai/streamlit-agent](https://github.com/langchain-ai/streamlit-agent).
-    """
+   
 
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [
-            {"role": "assistant", "content": "Hi, I'm a chatbot who can search the web. How can I help you?"}
-        ]
-    if "model" not in st.session_state:
-        st.session_state["model"] = "gpt-3.5-turbo"
+    # 이전 대화 불러오기
+    
+    for message in st.session_state['chat_history']:
+        with st.chat_message(message["role"]):
+            st.markdown(message["message"])
 
+    prompt = st.chat_input("질문을 입력하세요.")
 
-    for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
+    # 이미지 업로드
+    
+    if uploaded_file is not None:
+        # 이미지 저장
+        save_path = os.path.join("uploads", uploaded_file.name)
+        with open(save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.success(f"이미지가 업로드되었습니다: {uploaded_file.name}")
 
-    if prompt := st.chat_input(placeholder="Who won the Women's U.S. Open in 2018?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.chat_message("user").write(prompt)
-
-        if not openai_api_key:
-            st.info("Please add your OpenAI API key to continue.")
-            st.stop()
-
-        llm = ChatOpenAI(model_name="gpt-3.5-turbo", openai_api_key=openai_api_key, streaming=True)
         
+    if prompt:
+        with st.chat_message("user"):
+            st.write(prompt)
+        querry = f"{prompt}"
+        response = querry
         
-        with st.chat_message("assistant"):
-            st_cb = StreamlitCallbackHandler(st.container(), expand_new_thoughts=False)
-            response = search_agent.run(st.session_state.messages, callbacks=[st_cb])
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            st.write(response)
+        with st.chat_message("ai"):
+            st.write_stream(stream_data(message["message"]))
+        
+        st.session_state.chat_history.append({"role": "user", "message": prompt})
+        st.session_state.chat_history.append({"role": "ai", "message": response})
+        
+show_chatbot_page()
