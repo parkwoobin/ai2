@@ -1,6 +1,6 @@
 import streamlit as st
 from db import create_table, get_api_key
-
+#
 # 데이터베이스 테이블 생성
 create_table()
 
