@@ -43,10 +43,10 @@
 
 ## ⚙️ 세부 기술
 ### 🏗️ 시스템 구조
-<details>
+<details open>
 	<summary>구조도</summary>
   	<div markdown="1">
-      <img src="https://github.com/user-attachments/assets/a1b42b28-cc61-4a55-8554-f4dd98e9d822" alt="시스템 구조도" style="border: 2px solid black; border-radius: 8px;">
+      <img src="https://github.com/user-attachments/assets/a1b42b28-cc61-4a55-8554-f4dd98e9d822" alt="시스템 구조도" style="border: 2px solid black; border-radius: 8px; width: 80%;">
   	</div>
 </details>
 
@@ -55,6 +55,13 @@
 * **웹사이트** : 사용자 인터페이스 제공, Streamlit 또는 html 기반
 
 ### 🛠️ 기술 스택
+<details open>
+	<summary>기술 분석</summary>
+  	<div markdown="1">
+      <img src="https://github.com/user-attachments/assets/bc37b0c2-683d-4e1f-bf83-3b73212d3177" alt="기술 분석" style="border: 2px solid black; border-radius: 8px;">
+  	</div>
+</details>
+
 - **프로그래밍 언어** : Python   
 - **모델 프레임워크** : PyTorch   
 - **서버 및 프론트엔드** : Streamlit or Html   
