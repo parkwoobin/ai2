@@ -1,4 +1,4 @@
-# 👔 의류 추천 서비스 Re:CodAI 👗
+👔 의류 추천 서비스 Re:CodAI 👗
 본 프로젝트는 옷을 분석하고 코디를 추천해주는 서비스를 제공하는 웹사이트 개발하는 프로젝트입니다.
 > 202204083 우승우, 202284051 박우빈
 ## 프로젝트 소개
@@ -21,6 +21,8 @@
 최신 패션 트렌드를 반영한 맞춤형 코디를 추천하는 기능 추가
 
 ### 시스템 구조
+<img src="https://github.com/user-attachments/assets/a1b42b28-cc61-4a55-8554-f4dd98e9d822" alt="시스템 구조도" style="border: 2px solid black; border-radius: 8px;">
+
 * 서버: 사용자 데이터를 수집하여 TPO에 맞는 추천 제공
 * DB: 사용자 취향 데이터베이스
 * 웹사이트: 사용자 인터페이스 제공, Streamlit 기반
