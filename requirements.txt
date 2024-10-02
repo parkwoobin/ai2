@@ -2,6 +2,7 @@
 streamlit
 bcrypt
 cryptography
+python-dotenv
 ## 챗봇
 openai
 langchain
