@@ -13,6 +13,12 @@ def stream_data(response):
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
+# API 키 초기화
+if 'api_key' not in st.session_state:
+    st.session_state.api_key = ""
+else:
+    st.session_state.api_key = get_api_key(st.session_state['username'])
+
 # 챗봇 페이지를 보여주는 함수
 def show_chatbot_page():
     st.title("패션 도우미")  # 페이지 제목 설정
@@ -20,9 +26,9 @@ def show_chatbot_page():
     # 사이드바에 API 키 입력 및 저장 기능 추가
     with st.sidebar:
         # 세션에 저장된 API 키가 있으면 자동으로 입력
-        api_key_input = st.text_input("API 키 입력", value=st.session_state['api_key'])
+        api_key_input = st.text_input("API 키 입력", value=st.session_state.api_key, type="password")
         if st.button("API 키 저장"):
-            st.session_state['api_key'] = api_key_input
+            st.session_state.api_key = api_key_input
             # 현재 로그인된 사용자가 있는지 확인
             if 'username' in st.session_state:
                 update_api_key(st.session_state['username'], api_key_input)  # DB에 API 키 저장

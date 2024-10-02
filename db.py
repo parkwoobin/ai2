@@ -1,6 +1,16 @@
 import sqlite3
 import bcrypt
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.fernet import Fernet
+
+# secret.key 파일에서 키를 불러오는 함수
+def load_key():
+    with open('secret.key', 'rb') as key_file:
+        return key_file.read()
+
+# 키를 로드하여 Fernet 객체를 생성
+FERNET_KEY = load_key()
+cipher_suite = Fernet(FERNET_KEY)
 
 # 비밀번호 해시화
 def hash_password(password):
@@ -15,18 +25,25 @@ def check_password(password, hashed):
     return bcrypt.checkpw(password.encode('utf-8'), hashed)
 
 # 암호화를 위한 대칭키 생성 (앱을 시작할 때 또는 환경 변수로 관리)
-FERNET_KEY = Fernet.generate_key()  # 안전하게 저장 필요, 재생성 시 복호화 불가
-cipher_suite = Fernet(FERNET_KEY)
+def load_fernet_key():
+    # 기존에 생성된 키를 안전하게 로드하도록 환경 변수나 파일로 관리하는 것을 추천
+    # FERNET_KEY = Fernet.generate_key()  # 앱 재시작 시 키가 바뀌면 복호화가 불가능하므로, 환경변수나 파일로 키를 관리하세요.
+    # 예: 환경 변수에서 로드 (os.getenv('FERNET_KEY')) 또는 파일에서 로드
+    return Fernet(FERNET_KEY)  # FERNET_KEY는 적절히 관리되어야 함
+
+cipher_suite = load_fernet_key()
 
 # API 키 암호화
 def encrypt_api_key(api_key):
-    encrypted_key = cipher_suite.encrypt(api_key.encode('utf-8'))
-    return encrypted_key
+    return cipher_suite.encrypt(api_key.encode('utf-8'))
 
 # API 키 복호화
 def decrypt_api_key(encrypted_key):
-    decrypted_key = cipher_suite.decrypt(encrypted_key).decode('utf-8')
-    return decrypted_key
+    try:
+        return cipher_suite.decrypt(encrypted_key).decode('utf-8')
+    except InvalidToken:
+        print(f"Invalid Token: Unable to decrypt the API key.")
+        return None
 
 # 데이터베이스 연결
 def create_connection():
@@ -83,6 +100,8 @@ def get_api_key(username):
     cursor.execute('SELECT api_key FROM users WHERE username = ?', (username,))
     result = cursor.fetchone()
     conn.close()
+
     if result and result[0]:
+        print(f"Encrypted API key: {result[0]}")  # 암호화된 값 출력
         return decrypt_api_key(result[0])  # 복호화하여 반환
     return None
