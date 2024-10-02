@@ -6,3 +6,4 @@ __pycache__/
 *.pyo
 alembic.ini
 user.db
+myenv/
