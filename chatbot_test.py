@@ -13,6 +13,10 @@ def stream_data(response):
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
+##### 나중에 삭제하기 #####
+st.session_state.username = "1"
+#####
+
 # API 키 초기화
 if 'api_key' not in st.session_state:
     st.session_state.api_key = ""
