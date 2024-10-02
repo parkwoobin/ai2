@@ -33,7 +33,6 @@ if st.session_state.logged_in:
         {
             "Account": [logout_page],
             "Reports": [chatbot, browse, register],
-            
         }
     )
 else:
