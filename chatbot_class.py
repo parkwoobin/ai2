@@ -3,6 +3,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
+class User:
+    def __init__(self):
+        self.name = "name"
+        self.birthday = "1008/09/01"
+        self.gender = None
+        self.height = None
+        self.weight = None
+        self.personal_color = None
+        self.mbti = None
+
 def _format_docs(docs):
         return '\n\n'.join(doc.page_content for doc in docs)
     
@@ -18,9 +28,13 @@ class Chatbot:
         # 앞, 중간, 뒤로 나누어서 프롬프트를 정의합니다.
         # 중간은 사용자의 입력을 그대로 전달합니다.
         SYS_PROMPT = f"""
-        사용자 이름: {user_name}
-        사용자 나이: {user_age}
-        사용자 :
+        사용자 이름 : {name}
+        사용자 생년월일 : {birthday}
+        사용자 성별 : {gender}
+        사용자 키 : {height}
+        사용자 체중 : {weight}
+        사용자 퍼스널컬러 : {personal_color}
+        사용자 MBTI : {mbti}
         """
         self.prompt = ChatPromptTemplate.from_template(SYS_PROMPT)
         

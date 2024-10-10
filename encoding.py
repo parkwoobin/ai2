@@ -1,9 +1,7 @@
-def convert_to_utf8(file_path):
-    with open(file_path, 'r') as file:
-        content = file.read()
+import chardet
 
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(content)
+# 파일의 인코딩 감지
+with open('requirements.txt', 'rb') as f:
+    result = chardet.detect(f.read())
 
-if __name__ == "__main__":
-    convert_to_utf8('/Users/seungwoo/Workspace/AIService2/requirements.txt')
+print(f"Detected encoding: {result['encoding']}")
