@@ -1,0 +1,12 @@
+## 프레임워크 의존성
+streamlit
+bcrypt
+cryptography
+## 챗봇
+openai
+langchain
+langchain-openai
+langchain-community
+
+## Segmentation 모델 의존성
+# torch
