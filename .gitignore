@@ -8,3 +8,4 @@ alembic.ini
 user.db
 myenv/
 .env
+secret.key
