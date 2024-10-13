@@ -3,6 +3,47 @@ import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
 import os
 
+class PersonalInfoService:
+    def __init__(self, db_name='personal_info.db'):
+        self.conn = sqlite3.connect(db_name)
+        self.c = self.conn.cursor()
+        self.create_table()
+
+    def create_table(self):
+        self.c.execute('''CREATE TABLE IF NOT EXISTS personal_info
+                        (username INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT, 
+                        birthdate DATE, 
+                        gender TEXT, 
+                        height REAL, 
+                        weight REAL, 
+                        personal_color TEXT, 
+                        mbti TEXT)''')
+
+    def add_data(self, name, birthdate, gender, height, weight, personal_color, mbti):
+        self.c.execute('INSERT INTO personal_info (name, birthdate, gender, height, weight, personal_color, mbti) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+                       (name, birthdate, gender, height, weight, personal_color, mbti))
+        self.conn.commit()
+
+    def get_all_data(self):
+        self.c.execute("SELECT * FROM personal_info")
+        return self.c.fetchall()
+
+    def get_data_by_id(self, user_id):
+        self.c.execute("SELECT * FROM personal_info WHERE id = ?", (user_id,))
+        return self.c.fetchone()
+
+    def update_data_by_id(self, user_id, name, birthdate, gender, height, weight, personal_color, mbti):
+        self.c.execute('''UPDATE personal_info
+                          SET name = ?, birthdate = ?, gender = ?, height = ?, weight = ?, personal_color = ?, mbti = ?
+                          WHERE id = ?''',
+                       (name, birthdate, gender, height, weight, personal_color, mbti, user_id))
+        self.conn.commit()
+
+    def close_connection(self):
+        self.conn.close()
+
+
 # secret.key 파일에서 키를 로드하는 함수
 def load_fernet_key():
     # secret.key 파일에서 키 로드

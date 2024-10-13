@@ -21,17 +21,17 @@ logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
 chatbot = st.Page(
     "services/chatbot.py", title="챗봇", icon=":material/chat:", default=True
     )
-browse = st.Page(
-    "services/browse.py", title="Bug reports", icon=":material/bug_report:"
+weahter = st.Page(
+    "services/weather.py", title="날씨", icon=":material/wb_sunny:"
     )
-register = st.Page(
-    "services/register.py", title="System alerts", icon=":material/notification_important:"
+user_info = st.Page(
+    "services/user.py", title="개인 정보", icon=":material/notification_important:"
     )
 if st.session_state.logged_in:
     pg = st.navigation(
         {
             "Account": [logout_page],
-            "Reports": [chatbot, browse, register],
+            "Reports": [chatbot, weahter, user_info],
         }
     )
 else:
