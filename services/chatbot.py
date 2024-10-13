@@ -3,7 +3,7 @@ from db import update_api_key, get_api_key, get_personal_info
 import os
 import time
 from chatbot_class import Chatbot
-from services.weather import get_weather
+from weather_func import get_weather
 # 스트리밍 데이터를 생성하는 함수
 def stream_data(response):
     for word in response.split(" "):
@@ -20,17 +20,18 @@ if 'api_key' not in st.session_state:
 else:
     st.session_state.api_key = get_api_key(st.session_state['username'])
 
-user_id = st.session_state['id']
-existing_info = get_personal_info(user_id)
-weather = get_weather()
-chatbot = Chatbot(
-    api_key=st.session_state.api_key,
-    user_info=existing_info,
-    weather=weather,
-    model_name="gpt-4o-mini-2024-07-18"
-)
+
 # 챗봇 페이지를 보여주는 함수
 def show_chatbot_page():
+    user_id = st.session_state['id']
+    existing_info = get_personal_info(user_id)
+    weather = get_weather(st.session_state['location'])
+    chatbot = Chatbot(
+        api_key=st.session_state.api_key,
+        user_info=existing_info,
+        weather=weather,
+        model_name="gpt-4o-mini-2024-07-18"
+    )
     st.title("패션 도우미")  # 페이지 제목 설정
 
     # 사이드바에 API 키 입력 및 저장 기능 추가
