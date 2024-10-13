@@ -1,8 +1,6 @@
 import streamlit as st
-from db import initialize_database
-
 from db import initialize_database, get_api_key
-from weather_func import get_location
+
 # 데이터베이스 테이블 생성
 initialize_database()
 
@@ -12,7 +10,6 @@ if 'logged_in' not in st.session_state:
     st.session_state['id'] = ""
     st.session_state['username'] = ""
     st.session_state['api_key'] = ""
-    st.session_state['location'] = get_location()
 
 def logout():
     st.session_state.logged_in = False
@@ -21,6 +18,8 @@ def logout():
     st.session_state['api_key'] = ""
     st.rerun()
 
+login_page = st.Page("services/login.py", title="Log in", icon=":material/login:")
+logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
 chatbot = st.Page(
     "services/chatbot.py", title="챗봇", icon=":material/chat:", default=True
     )
@@ -30,17 +29,14 @@ weather = st.Page(
 user_info = st.Page(
     "services/user.py", title="개인 정보", icon=":material/notification_important:"
     )
-    
-login_page = st.Page("services/login.py", title="Log in", icon=":material/login:")
-logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
-
 if st.session_state.logged_in:
     pg = st.navigation(
         {
             "Account": [logout_page],
             "Reports": [chatbot, weather, user_info],
-        },
-        position="sidebar"
+        }
     )
 else:
     pg = st.navigation([login_page])
+    
+pg.run()
