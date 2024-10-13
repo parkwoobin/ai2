@@ -1,5 +1,5 @@
 import streamlit as st
-from db import create_table, login_user, register_user, update_api_key, get_api_key
+from db import  login_user, register_user, get_api_key
 
 if 'signup' not in st.session_state:
     st.session_state['signup'] = False
@@ -14,7 +14,9 @@ def show_login_page():
     if st.button("로그인"):
         user = login_user(username, password)
         if user:
+
             st.session_state['logged_in'] = True
+            st.session_state['id'] = user[0]
             st.session_state['username'] = username
             
             # 로그인 성공 시 API 키를 DB에서 불러와 세션에 저장

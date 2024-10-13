@@ -3,47 +3,6 @@ import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
 import os
 
-class PersonalInfoService:
-    def __init__(self, db_name='personal_info.db'):
-        self.conn = sqlite3.connect(db_name)
-        self.c = self.conn.cursor()
-        self.create_table()
-
-    def create_table(self):
-        self.c.execute('''CREATE TABLE IF NOT EXISTS personal_info
-                        (username INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT, 
-                        birthdate DATE, 
-                        gender TEXT, 
-                        height REAL, 
-                        weight REAL, 
-                        personal_color TEXT, 
-                        mbti TEXT)''')
-
-    def add_data(self, name, birthdate, gender, height, weight, personal_color, mbti):
-        self.c.execute('INSERT INTO personal_info (name, birthdate, gender, height, weight, personal_color, mbti) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                       (name, birthdate, gender, height, weight, personal_color, mbti))
-        self.conn.commit()
-
-    def get_all_data(self):
-        self.c.execute("SELECT * FROM personal_info")
-        return self.c.fetchall()
-
-    def get_data_by_id(self, user_id):
-        self.c.execute("SELECT * FROM personal_info WHERE id = ?", (user_id,))
-        return self.c.fetchone()
-
-    def update_data_by_id(self, user_id, name, birthdate, gender, height, weight, personal_color, mbti):
-        self.c.execute('''UPDATE personal_info
-                          SET name = ?, birthdate = ?, gender = ?, height = ?, weight = ?, personal_color = ?, mbti = ?
-                          WHERE id = ?''',
-                       (name, birthdate, gender, height, weight, personal_color, mbti, user_id))
-        self.conn.commit()
-
-    def close_connection(self):
-        self.conn.close()
-
-
 # secret.key 파일에서 키를 로드하는 함수
 def load_fernet_key():
     # secret.key 파일에서 키 로드
@@ -92,22 +51,43 @@ def decrypt_api_key(encrypted_key):
 def create_connection():
     try:
         conn = sqlite3.connect('users.db')
+        conn.execute("PRAGMA foreign_keys = 1")  # 외래 키 기능 활성화
         return conn
     except sqlite3.Error as e:
         print(f"Database connection error: {e}")
         return None
 
-# 테이블 생성
-def create_table():
+# users 테이블 생성
+def create_user_table():
     conn = create_connection()
     if conn:
         with conn:
             conn.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
+                username TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
                 api_key BLOB
+            );
+            ''')
+        conn.close()
+
+# personal_info 테이블 생성
+def create_personal_info_table():
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            CREATE TABLE IF NOT EXISTS personal_info (
+                user_id INTEGER PRIMARY KEY,
+                name TEXT, 
+                birthdate DATE, 
+                gender TEXT, 
+                height REAL, 
+                weight REAL, 
+                personal_color TEXT, 
+                mbti TEXT,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             ''')
         conn.close()
@@ -117,8 +97,12 @@ def register_user(username, password):
     conn = create_connection()
     if conn:
         hashed_password = hash_password(password)
-        with conn:
-            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
+        try:
+            with conn:
+                conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
+            print("회원가입이 완료되었습니다.")
+        except sqlite3.IntegrityError:
+            print("이미 존재하는 사용자 이름입니다.")
         conn.close()
 
 # 로그인
@@ -131,7 +115,10 @@ def login_user(username, password):
         conn.close()
 
         if user and check_password(password, user[2]):
+            print("로그인 성공")
             return user
+        else:
+            print("로그인 실패: 아이디나 비밀번호가 올바르지 않습니다.")
     return None
 
 # API 키 업데이트
@@ -142,6 +129,7 @@ def update_api_key(username, api_key):
         with conn:
             conn.execute('UPDATE users SET api_key = ? WHERE username = ?', (encrypted_key, username))
         conn.close()
+        print("API 키가 업데이트되었습니다.")
 
 # API 키 불러오기
 def get_api_key(username):
@@ -155,3 +143,57 @@ def get_api_key(username):
         if result and result[0]:
             return decrypt_api_key(result[0])
     return None
+
+# 개인 정보 추가
+def add_personal_info(user_id, name, birthdate, gender, height, weight, personal_color, mbti):
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            INSERT INTO personal_info (user_id, name, birthdate, gender, height, weight, personal_color, mbti)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, name, birthdate, gender, height, weight, personal_color, mbti))
+        conn.close()
+        print("개인 정보가 추가되었습니다.")
+
+# 개인 정보 조회
+def get_personal_info(user_id):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM personal_info WHERE user_id = ?', (user_id,))
+        info = cursor.fetchone()
+        conn.close()
+        return info
+    return None
+
+# 개인 정보 업데이트
+def update_personal_info(user_id, name, birthdate, gender, height, weight, personal_color, mbti):
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            UPDATE personal_info
+            SET name = ?, birthdate = ?, gender = ?, height = ?, weight = ?, personal_color = ?, mbti = ?
+            WHERE user_id = ?
+            ''', (name, birthdate, gender, height, weight, personal_color, mbti, user_id))
+        conn.close()
+        print("개인 정보가 업데이트되었습니다.")
+
+# 모든 개인 정보 조회
+def get_all_personal_info():
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM personal_info')
+        all_info = cursor.fetchall()
+        conn.close()
+        return all_info
+    return []
+
+# 테이블 생성
+def initialize_database():
+    create_user_table()
+    create_personal_info_table()
+
+

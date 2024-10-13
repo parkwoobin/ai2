@@ -45,3 +45,5 @@ def get_weather():
             st.write(f"날씨 상태: {weather_info['condition']}")
         else:
             st.error("날씨 정보를 가져오지 못했습니다.")
+
+get_weather()

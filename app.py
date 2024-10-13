@@ -1,18 +1,20 @@
 import streamlit as st
-from db import create_table, get_api_key
+from db import initialize_database, get_api_key
 
 # 데이터베이스 테이블 생성
-create_table()
+initialize_database()
 
 # 로그인 세션 상태 초기화
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
     st.session_state['id'] = ""
+    st.session_state['username'] = ""
     st.session_state['api_key'] = ""
 
 def logout():
     st.session_state.logged_in = False
     st.session_state['id'] = ""
+    st.session_state['username'] = ""
     st.session_state['api_key'] = ""
     st.rerun()
 
