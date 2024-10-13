@@ -1,10 +1,15 @@
 import streamlit as st
+<<<<<<< HEAD
 from db import initialize_database
 from streamlit_option_menu import option_menu
 from services.weather import get_weather
 from services.user import get_user_info
 from services.login import show_login_page  # 로그인 페이지를 가져옵니다.
 
+=======
+from db import initialize_database, get_api_key
+from weather_func import get_location
+>>>>>>> 0c6468d60b5bed29e525f9df7f54ee11fa83e6fa
 # 데이터베이스 테이블 생성
 initialize_database()
 
@@ -14,6 +19,7 @@ if 'logged_in' not in st.session_state:
     st.session_state['id'] = ""
     st.session_state['username'] = ""
     st.session_state['api_key'] = ""
+    st.session_state['location'] = get_location()
 
 def logout():
     st.session_state.logged_in = False
@@ -21,11 +27,17 @@ def logout():
     st.session_state['username'] = ""
     st.session_state['api_key'] = ""
     st.rerun()
+<<<<<<< HEAD
 
 # 페이지 불러오기
+=======
+    
+login_page = st.Page("services/login.py", title="Log in", icon=":material/login:")
+>>>>>>> 0c6468d60b5bed29e525f9df7f54ee11fa83e6fa
 logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
 
 if st.session_state.logged_in:
+<<<<<<< HEAD
     # 상단 네비게이션 바 (로그인한 경우에만 표시)
     selected = option_menu(
         menu_title=None,  # 메뉴바 제목 없음
@@ -35,6 +47,18 @@ if st.session_state.logged_in:
         default_index=0,  # 기본 선택된 메뉴
         orientation="horizontal",  # 메뉴를 상단에 가로로 표시
     )   
+=======
+    pg = st.navigation(
+        {
+            "Account": [logout_page],
+            "Reports": [chatbot, weahter, user_info],
+            
+        },
+        position="sidebar"
+    )
+else:
+    pg = st.navigation([login_page])
+>>>>>>> 0c6468d60b5bed29e525f9df7f54ee11fa83e6fa
     
     if selected == "홈":
         st.title("Welcome to the Home Page")
