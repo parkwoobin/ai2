@@ -30,8 +30,8 @@ def get_user_info():
     name = st.text_input("이름", key="name_input")
     birthdate = st.date_input("생년월일", datetime(2000, 1, 1), key="birthdate_input")
     gender = st.selectbox("성별", ["남성", "여성", "기타"], key="gender_select")
-    height = st.number_input("키 (cm)", min_value=0.0, key="height_input")
-    weight = st.number_input("체중 (kg)", min_value=0.0, key="weight_input")
+    height = st.number_input("키 (cm)", min_value=0, key="height_input")
+    weight = st.number_input("체중 (kg)", min_value=0, key="weight_input")
 
     # 퍼스널 컬러 입력
     personal_color = st.text_input("퍼스널컬러", placeholder="모를 시 빈칸으로 두시오", key="personal_color_input")
