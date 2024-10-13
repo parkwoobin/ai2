@@ -9,3 +9,5 @@ user.db
 myenv/
 .env
 secret.key
+users.db
+personal_info.db
