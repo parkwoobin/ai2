@@ -3,7 +3,7 @@ from db import update_api_key, get_api_key, get_personal_info
 import os
 import time
 from chatbot_class import Chatbot
-from weather import get_weather
+from services.weather import get_weather
 # 스트리밍 데이터를 생성하는 함수
 def stream_data(response):
     for word in response.split(" "):
@@ -25,7 +25,9 @@ existing_info = get_personal_info(user_id)
 weather = get_weather()
 chatbot = Chatbot(
     api_key=st.session_state.api_key,
-    personal_info=existing_info
+    user_info=existing_info,
+    weather=weather,
+    model_name="gpt-4o-mini-2024-07-18"
 )
 # 챗봇 페이지를 보여주는 함수
 def show_chatbot_page():
@@ -69,7 +71,7 @@ def show_chatbot_page():
         with st.chat_message("user"):
             st.write(prompt)
         querry = f"{prompt}"
-        response = querry  # 실제 응답을 생성하는 로직이 필요
+        response = chatbot.generate(querry)
 
         # AI 응답 메시지 표시
         with st.chat_message("ai"):
