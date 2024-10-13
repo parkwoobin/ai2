@@ -28,13 +28,17 @@ class Chatbot:
         # 앞, 중간, 뒤로 나누어서 프롬프트를 정의합니다.
         # 중간은 사용자의 입력을 그대로 전달합니다.
         SYS_PROMPT = f"""
-        사용자 이름 : {name}
-        사용자 생년월일 : {birthday}
-        사용자 성별 : {gender}
-        사용자 키 : {height}
-        사용자 체중 : {weight}
-        사용자 퍼스널컬러 : {personal_color}
-        사용자 MBTI : {mbti}
+        사용자 이름 : {user_info[0]}
+        사용자 생년월일 : {user_info[1]}
+        사용자 성별 : {user_info[2]}
+        사용자 키 : {user_info[4]}
+        사용자 체중 : {user_info[5]}
+        사용자 퍼스널컬러 : {user_info[6]}
+        사용자 MBTI : {user_info[7]}
+        
+        위치: {weather['location']}
+        온도: {weather['temperature']}°C
+        날씨: {weather['condition']}
         """
         self.prompt = ChatPromptTemplate.from_template(SYS_PROMPT)
         
@@ -48,16 +52,5 @@ class Chatbot:
     def generate(self, input_message):
         return self.chain.invoke(input_message)
     
-if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
-    
-    api = os.getenv("OPENAI_API_KEY")
-    
-    chatbot = Chatbot(
-        api,
-        weather=
-        user_info=
-        model_name="gpt-4o",
-    )
+
         
