@@ -11,3 +11,4 @@ myenv/
 secret.key
 users.db
 personal_info.db
+uploads/
