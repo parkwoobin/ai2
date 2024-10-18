@@ -191,9 +191,52 @@ def get_all_personal_info():
         return all_info
     return []
 
+# user_images 테이블 생성
+def create_user_images_table():
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            CREATE TABLE IF NOT EXISTS user_images (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                filename TEXT NOT NULL,
+                filepath TEXT NOT NULL,
+                upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            ''')
+        conn.close()
+        print("user_images 테이블이 생성되었습니다.")
+
+# 이미지 정보 추가
+def add_user_image(user_id, filename, filepath):
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            INSERT INTO user_images (user_id, filename, filepath)
+            VALUES (?, ?, ?)
+            ''', (user_id, filename, filepath))
+        conn.close()
+        print("이미지 정보가 추가되었습니다.")
+
+# 특정 사용자가 업로드한 모든 이미지 조회 (최신순으로 정렬)
+def get_user_images(user_id):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        # 최신 업로드일 기준으로 내림차순 정렬
+        cursor.execute('SELECT filename, filepath, upload_date FROM user_images WHERE user_id = ? ORDER BY upload_date DESC', (user_id,))
+        images = cursor.fetchall()
+        conn.close()
+        return images
+    return []
+
+
 # 테이블 생성
 def initialize_database():
     create_user_table()
     create_personal_info_table()
-
+    create_user_images_table()  # 추가된 부분
 

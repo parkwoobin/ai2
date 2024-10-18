@@ -29,11 +29,14 @@ weather = st.Page(
 user_info = st.Page(
     "services/user.py", title="개인 정보", icon=":material/notification_important:"
     )
+upload = st.Page(
+    "services/upload.py", title="이미지 업로드", icon=":material/image_search:"
+    )
 if st.session_state.logged_in:
     pg = st.navigation(
         {
             "Account": [logout_page],
-            "Reports": [chatbot, weather, user_info],
+            "Reports": [chatbot, weather, user_info, upload],
         }
     )
 else:
