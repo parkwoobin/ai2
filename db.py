@@ -156,6 +156,20 @@ def add_personal_info(user_id, name, birthdate, gender, height, weight, personal
         conn.close()
         print("개인 정보가 추가되었습니다.")
 
+# 개인 정보 삭제
+def delete_personal_info(user_id):
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            DELETE FROM personal_info
+            WHERE user_id = ?
+            ''', (user_id,))
+        conn.close()
+        print("개인 정보가 삭제되었습니다.")
+
+
+
 # 개인 정보 조회
 def get_personal_info(user_id):
     conn = create_connection()
@@ -172,6 +186,7 @@ def update_personal_info(user_id, name, birthdate, gender, height, weight, perso
     conn = create_connection()
     if conn:
         with conn:
+            print("1")
             conn.execute('''
             UPDATE personal_info
             SET name = ?, birthdate = ?, gender = ?, height = ?, weight = ?, personal_color = ?, mbti = ?
