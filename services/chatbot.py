@@ -26,6 +26,15 @@ if 'chatbot' not in st.session_state:
     existing_info = get_personal_info(user_id)
     weather = get_weather(get_location())
     
+    # 개인정보가 없으면 개인정보 페이지로 이동
+    if not existing_info:
+        st.warning("개인정보가 없습니다. 개인정보 페이지로 이동합니다.")
+        if st.button("개인정보 입력하기"):
+            st.session_state['navigate_to_personal_info'] = True
+            user_info = st.Page("services/user.py", title="개인 정보", icon=":material/notification_important:")
+    
+    weather = get_weather(get_location())
+
     # GPT 챗봇 객체를 세션 상태에 저장
     st.session_state.chatbot = GPT(
         api_key=st.session_state.api_key,
