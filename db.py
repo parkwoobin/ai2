@@ -169,7 +169,6 @@ def delete_personal_info(user_id):
         print("개인 정보가 삭제되었습니다.")
 
 
-
 # 개인 정보 조회
 def get_personal_info(user_id):
     conn = create_connection()
