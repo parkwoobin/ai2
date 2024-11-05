@@ -235,6 +235,30 @@ def add_user_image(user_id, filename, filepath):
         conn.close()
         print("이미지 정보가 추가되었습니다.")
 
+# 특정 이미지 삭제
+def delete_user_image(user_id, filename):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        # 먼저 파일 경로 가져오기
+        cursor.execute('SELECT filepath FROM user_images WHERE user_id = ? AND filename = ?', (user_id, filename))
+        result = cursor.fetchone()
+        
+        if result:
+            filepath = result[0]
+            # DB에서 레코드 삭제
+            with conn:
+                conn.execute('DELETE FROM user_images WHERE user_id = ? AND filename = ?', (user_id, filename))
+            
+            # 실제 파일 삭제
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                
+            print("이미지가 성공적으로 삭제되었습니다.")
+            return True
+        conn.close()
+    return False
+
 # 특정 사용자가 업로드한 모든 이미지 조회 (최신순으로 정렬)
 def get_user_images(user_id):
     conn = create_connection()
