@@ -43,17 +43,28 @@ def show_signup_page():
     password = st.text_input("비밀번호 (회원가입)", type="password")
     confirm_password = st.text_input("비밀번호 확인", type="password")
 
-    if st.button("회원가입"):
-        if password != confirm_password:
-            st.error("비밀번호가 일치하지 않습니다.")
-        else:
-            # 회원 등록
-            register_user(username, password)
-            st.session_state['logged_in'] = True
-            st.session_state['username'] = username
-            
-            st.success("회원가입이 완료되었습니다!")
-            # 회원가입 완료 후 로그인 페이지로 돌아가기
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("가입 완료"):
+            if not username:
+                st.error("아이디를 입력해주세요.")
+            elif not password:
+                st.error("비밀번호를 입력해주세요.")
+            elif password != confirm_password:
+                st.error("비밀번호가 일치하지 않습니다.")
+            else:
+                # 회원 등록
+                register_user(username, password)
+                st.session_state['logged_in'] = True
+                st.session_state['username'] = username
+                
+                st.success("회원가입이 완료되었습니다!")
+                # 회원가입 완료 후 로그인 페이지로 돌아가기
+                st.session_state['signup'] = False
+                st.rerun()
+
+    with col2:
+        if st.button("취소"):
             st.session_state['signup'] = False
             st.rerun()
 
