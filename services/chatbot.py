@@ -20,20 +20,16 @@ if 'chat_history' not in st.session_state:
 if 'api_key' not in st.session_state:
     st.session_state.api_key = get_api_key(st.session_state.get('username', ''))
 
+
 # 챗봇 객체를 한 번만 생성하도록 변경
 if 'chatbot' not in st.session_state:
     user_id = st.session_state.get('id', '')
     existing_info = get_personal_info(user_id)
     weather = get_weather(get_location())
-    
-    # 개인정보가 없으면 개인정보 페이지로 이동
+
+    # 개인정보가 없으면 안내 메시지 출력
     if not existing_info:
-        st.warning("개인정보가 없습니다. 개인정보 페이지로 이동합니다.")
-        if st.button("개인정보 입력하기"):
-            st.session_state['navigate_to_personal_info'] = True
-            user_info = st.Page("services/user.py", title="개인 정보", icon=":material/notification_important:")
-    
-    weather = get_weather(get_location())
+        st.warning("개인정보가 없습니다. 개인정보를 입력해주세요.")
 
     # GPT 챗봇 객체를 세션 상태에 저장
     st.session_state.chatbot = GPT(
@@ -68,7 +64,6 @@ def show_chatbot_page():
     selected_image = None  # 선택된 이미지 초기화
     for index, img in enumerate(current_images):
         filename, filepath, upload_date = img
-        
         with columns[index % num_columns]:
             st.image(filepath, use_column_width=True)
             # 선택 버튼
