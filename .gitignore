@@ -9,6 +9,7 @@ __pycache__/
 alembic.ini
 user.db
 myenv/
+runs/
 .env
 secret.key
 users.db
