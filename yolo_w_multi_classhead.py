@@ -13,6 +13,11 @@ import wandb
 
 # 카테고리별 인코딩 (한국어)
 category_encodings = {
+    "카테고리": {
+        "탑": 0, "블라우스": 1, "캐주얼상의": 2, "니트웨어": 3, "셔츠": 4, "베스트": 5,
+        "코트": 6, "재킷": 7, "점퍼": 8, "패딩": 9, "청바지": 10, "팬츠": 11,
+        "스커트": 12, "드레스": 13, "점프수트": 14, "수영복": 15
+    },
     "기장": {
         "숏": 0, "미디": 1, "롱": 2
     },
@@ -68,6 +73,7 @@ category_encodings = {
 
 # 한국어에서 영어로 변환하는 매핑
 attribute_translation = {
+    "카테고리": "Category", 
     "기장": "length",
     "색상": "color",
     "디테일": "detail",
@@ -90,10 +96,10 @@ category_translation = {
 def process_labels_to_list(label_data, encodings, attr_translation, cat_translation):
     # 카테고리별 유효한 속성 정의
     valid_attributes = {
-        "아우터": ["기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"],
-        "상의": ["기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"],
-        "하의": ["기장", "색상", "소재", "프린트", "핏"],
-        "원피스": ["기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"]
+        "아우터": ["카테고리","기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"],
+        "상의": ["카테고리","기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"],
+        "하의": ["카테고리","기장", "색상", "소재", "프린트", "핏"],
+        "원피스": ["카테고리","기장", "색상", "소매기장", "소재", "프린트", "넥라인", "핏"]
     }
 
     # 기본 구조 초기화
@@ -192,6 +198,7 @@ class Head(nn.Module):
 
         # 공통 속성 선언 (가중치 공유)
         self.shared_heads = nn.ModuleDict({
+            "Category": Classify(input_channels, len(category_encodings["카테고리"])),
             "length": Classify(input_channels, len(category_encodings["기장"])),
             "color": Classify(input_channels, len(category_encodings["색상"])),
             "sleeve_length": Classify(input_channels, len(category_encodings["소매기장"])),
@@ -203,22 +210,22 @@ class Head(nn.Module):
 
         # 아우터 속성 선언
         self.outer_head = nn.ModuleDict({
-            key: self.shared_heads[key] for key in ["length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
+            key: self.shared_heads[key] for key in ["Category","length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
         })
 
         # 상의 속성 선언
         self.top_head = nn.ModuleDict({
-            key: self.shared_heads[key] for key in ["length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
+            key: self.shared_heads[key] for key in ["Category","length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
         })
 
         # 하의 속성 선언
         self.bottom_head = nn.ModuleDict({
-            key: self.shared_heads[key] for key in ["length", "color", "material", "print", "fit"]
+            key: self.shared_heads[key] for key in ["Category","length", "color", "material", "print", "fit"]
         })
 
         # 원피스 속성 선언
         self.onepiece_head = nn.ModuleDict({
-            key: self.shared_heads[key] for key in ["length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
+            key: self.shared_heads[key] for key in ["Category","length", "color", "sleeve_length", "material", "print", "neckline", "fit"]
         })
 
     def forward(self, x):
