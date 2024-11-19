@@ -402,26 +402,26 @@ if __name__ == '__main__':
         transforms.ToTensor()
     ])
     # 데이터셋 인스턴스 생성
-    train_img_path = './dataset/images/train'
-    train_label_path = './dataset/reg_labels/train'
+    train_img_path = './datasets/images/train'
+    train_label_path = './datasets/reg_labels/train'
     train_dataset = FashionDataset(train_img_path, train_label_path, category_encodings, attribute_translation, category_translation, transform=transform)
     # 데이터로더 생성
     train_dataloader = DataLoader(
         train_dataset,
-        batch_size=8,
+        batch_size=16,
         shuffle=True
     )
     
-    val_img_path = './dataset/images/val'
-    val_label_path = './dataset/reg_labels/val'
+    val_img_path = './datasets/images/val'
+    val_label_path = './datasets/reg_labels/val'
     val_dataset = FashionDataset(val_img_path, val_label_path, category_encodings, attribute_translation, category_translation, transform=transform)
     
     val_dataloader = DataLoader(
         val_dataset,
-        batch_size=8,
+        batch_size=16,
     )
-    
-    model = YOLO_MultiClass()
+    weight_path = './runs/detect/s_640_dropout025_more_category_5/weights/best.pt'
+    model = YOLO_MultiClass(weight_path)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
@@ -436,7 +436,7 @@ if __name__ == '__main__':
         val_loader=val_dataloader,
         criterion=compute_loss,
         optimizer=optimizer,
-        num_epochs=25,
-        patience=5,
+        num_epochs=300,
+        patience=10,
         project_name="fashion_classification"
     )
