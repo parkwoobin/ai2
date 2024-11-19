@@ -177,6 +177,7 @@ class FashionDataset(Dataset):
         processed_labels = {key: torch.tensor(value, dtype=torch.long) for key, value in processed_labels.items()}
         return image, processed_labels
 from tqdm import tqdm
+from sklearn.metrics import accuracy_score, f1_score
 
 class Classify(nn.Module):
     """YOLO classification head, i.e. x(b,c1,20,20) to x(b,c2)."""
@@ -450,3 +451,135 @@ if __name__ == '__main__':
         patience=10,
         project_name="fashion_classification"
     )
+    def compute_metrics(outputs, targets):
+        """
+        평가 메트릭스: 각 카테고리별 정확도와 F1 스코어를 계산.
+        """
+
+        def compute_category_metrics(output, target):
+            """
+            개별 속성에 대한 정확도와 F1 스코어 계산.
+            """
+            mask = target != -1  # -1 값 제외
+            if mask.sum() == 0:  # 유효한 값이 없으면 None 반환
+                return None, None
+
+            valid_targets = target[mask].cpu().numpy()
+            valid_outputs = output[mask].argmax(dim=1).cpu().numpy()
+
+            accuracy = accuracy_score(valid_targets, valid_outputs)
+            f1 = f1_score(valid_targets, valid_outputs, average='weighted')
+
+            return accuracy, f1
+
+        # 각 카테고리별 메트릭스 계산
+        category_metrics = {}
+
+        for category in ['outer', 'top', 'bottom', 'onepiece']:
+            if category in outputs:
+                accuracies = []
+                f1_scores = []
+                for idx, key in enumerate(outputs[category]):
+                    accuracy, f1 = compute_category_metrics(outputs[category][key], targets[category][:, idx])
+                    if accuracy is not None and f1 is not None:
+                        accuracies.append(accuracy)
+                        f1_scores.append(f1)
+
+                if accuracies and f1_scores:
+                    category_metrics[category] = {
+                        'accuracy': sum(accuracies) / len(accuracies),
+                        'f1_score': sum(f1_scores) / len(f1_scores)
+                    }
+
+        return category_metrics
+
+    def validate_model_with_metrics(model, dataloader, criterion):
+        """
+        검증 데이터셋을 사용하여 모델의 성능을 평가하는 함수.
+        """
+        model.eval()  # Evaluation 모드
+        device = next(model.parameters()).device
+        running_loss = 0.0
+        all_outputs = []
+        all_targets = []
+
+        with torch.no_grad():  # Gradient 계산 비활성화
+            for images, labels in tqdm(dataloader, desc="Validation"):
+                images = images.to(device)
+                labels = {k: v.to(device) for k, v in labels.items()}  # 라벨 GPU로 전송
+
+                outputs = model(images)
+                loss = criterion(outputs, labels)  # Validation Loss 계산
+                running_loss += loss.item()
+
+                all_outputs.append(outputs)
+                all_targets.append(labels)
+
+        val_loss = running_loss / len(dataloader)
+
+        # 모든 배치의 출력과 타겟을 결합
+        combined_outputs = {k: torch.cat([batch[k] for batch in all_outputs], dim=0) for k in all_outputs[0]}
+        combined_targets = {k: torch.cat([batch[k] for batch in all_targets], dim=0) for k in all_targets[0]}
+
+        metrics = compute_metrics(combined_outputs, combined_targets)
+
+        return val_loss, metrics
+
+    # 모델 학습 함수 수정
+    def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=25, patience=5, project_name="fashion_classification"):
+        # Initialize wandb
+        wandb.init(project=project_name, config={
+            "epochs": num_epochs,
+            "batch_size": train_loader.batch_size,
+            "learning_rate": optimizer.param_groups[0]["lr"],
+            "patience": patience
+        })
+        wandb.watch(model, log="all", log_freq=10)  # Watch model parameters and gradients
+
+        early_stopping = EarlyStopping(patience=patience, path='best_model.pt')
+        device = next(model.parameters()).device  # Ensure device consistency
+
+        for epoch in range(num_epochs):
+            # Training
+            model.train()
+            running_loss = 0.0
+
+            for images, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}/{num_epochs} - Training"):
+                images = images.to(device)
+                labels = {k: v.to(device) for k, v in labels.items()}  # 라벨 GPU로 전송
+
+                optimizer.zero_grad()
+                outputs = model(images)
+                loss = criterion(outputs, labels)  # Training Loss 계산
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+
+            train_loss = running_loss / len(train_loader)
+            print(f"Epoch {epoch+1}, Training Loss: {train_loss}")
+
+            # Validation
+            val_loss, metrics = validate_model_with_metrics(model, val_loader, criterion)
+            print(f"Epoch {epoch+1}, Validation Loss: {val_loss}")
+            print(f"Validation Metrics: {metrics}")
+
+            # Log to wandb
+            wandb.log({
+                "epoch": epoch + 1,
+                "train_loss": train_loss,
+                "val_loss": val_loss,
+                "learning_rate": optimizer.param_groups[0]["lr"],
+                "metrics": metrics
+            })
+
+            # Early Stopping 및 최고 성능 모델 저장
+            early_stopping(val_loss, model)
+
+            if early_stopping.early_stop:
+                print("Early stopping triggered.")
+                wandb.log({"early_stop": epoch + 1})
+                break
+
+        wandb.finish()  # End wandb run
+        print('Training complete')
