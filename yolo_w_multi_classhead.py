@@ -122,7 +122,6 @@ def process_labels_to_list(label_data, encodings, attr_translation, cat_translat
 
     return processed_labels
 
-# 데이터셋 클래스 정의
 class FashionDataset(Dataset):
     def __init__(self, img_dir, label_dir, encodings, attr_translation, cat_translation, transform=None):
         self.img_dir = img_dir
@@ -134,12 +133,22 @@ class FashionDataset(Dataset):
         self.img_list = sorted(os.listdir(img_dir))
         self.label_list = sorted(os.listdir(label_dir))
 
+        # 디버깅용 출력
+        print(f"Dataset initialized with {len(self.img_list)} images and {len(self.label_list)} labels.")
+
     def __len__(self):
         return len(self.img_list)
 
     def __getitem__(self, idx):
+        # 이미지 경로 및 검증
         img_path = os.path.join(self.img_dir, self.img_list[idx])
+        if not os.path.exists(img_path):
+            raise FileNotFoundError(f"Image file not found: {img_path}")
+
+        # 라벨 경로 및 검증
         label_path = os.path.join(self.label_dir, self.label_list[idx])
+        if not os.path.exists(label_path):
+            raise FileNotFoundError(f"Label file not found: {label_path}")
 
         # 이미지 로드 및 전처리
         image = cv2.imread(img_path, cv2.IMREAD_COLOR)
@@ -148,25 +157,19 @@ class FashionDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        # 라벨 로드 및 리스트로 변환
-        with open(label_path, 'r', encoding='utf-8') as f:
-            label_data = json.load(f)
+        # 라벨 로드
+        try:
+            with open(label_path, 'r', encoding='utf-8') as f:
+                label_data = json.load(f)
+        except Exception as e:
+            raise RuntimeError(f"Error reading label file {label_path}: {e}")
 
+        # 라벨 처리
         processed_labels = process_labels_to_list(
             label_data, self.encodings, self.attr_translation, self.cat_translation
         )
-
-        # 리스트로 반환된 processed_labels를 딕셔너리로 변환
         processed_labels = {key: torch.tensor(value, dtype=torch.long) for key, value in processed_labels.items()}
-        # print(processed_labels)
         return image, processed_labels
-
-# 이미지 전처리 정의
-transform = transforms.Compose([
-    transforms.Resize((640, 640)),
-    transforms.ToTensor()
-])
-
 from tqdm import tqdm
 
 class Classify(nn.Module):
