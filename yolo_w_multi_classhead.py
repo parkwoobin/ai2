@@ -431,7 +431,7 @@ if __name__ == '__main__':
         val_dataset,
         batch_size=16,
     )
-    weight_path = './runs/detect/s_640_dropout025_more_category_5/weights/best.pt'
+    weight_path = './runs/detect/s_640_dropout0254/weights/best.pt'
     model = YOLO_MultiClass(weight_path)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
