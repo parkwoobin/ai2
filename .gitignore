@@ -1,6 +1,7 @@
 Fashion-How_2024_subtask4/
 k_fashsion/
 dataset/
+datasets/
 .DS_Store
 test.db
 __pycache__/
@@ -15,3 +16,5 @@ secret.key
 users.db
 personal_info.db
 uploads/
+wandb/
+change_yolo_settings.py
