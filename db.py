@@ -2,6 +2,7 @@ import sqlite3
 import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
 import os
+import json
 
 # secret.key 파일에서 키를 로드하는 함수
 def load_fernet_key():
@@ -155,7 +156,6 @@ def add_personal_info(user_id, name, birthdate, gender, height, weight, personal
             ''', (user_id, name, birthdate, gender, height, weight, personal_color, mbti))
         conn.close()
         print("개인 정보가 추가되었습니다.")
-
 # 개인 정보 삭제
 def delete_personal_info(user_id):
     conn = create_connection()
@@ -226,14 +226,21 @@ def create_user_images_table():
 # 이미지 정보 추가
 def add_user_image(user_id, filename, filepath):
     conn = create_connection()
+    image_id = None
     if conn:
         with conn:
-            conn.execute('''
-            INSERT INTO user_images (user_id, filename, filepath)
-            VALUES (?, ?, ?)
-            ''', (user_id, filename, filepath))
+            try:
+                cursor = conn.cursor()
+                cursor.execute('''
+                INSERT INTO user_images (user_id, filename, filepath)
+                VALUES (?, ?, ?)
+                ''', (user_id, filename, filepath))
+                image_id = cursor.lastrowid
+            except sqlite3.Error as e:
+                print(f"SQLite 에러: {e}")
         conn.close()
         print("이미지 정보가 추가되었습니다.")
+    return image_id
 
 # 특정 이미지 삭제
 def delete_user_image(user_id, filename):
@@ -271,10 +278,90 @@ def get_user_images(user_id):
         return images
     return []
 
+# 이미지 속성 테이블 생성
+def create_image_attributes_table():
+    conn = create_connection()
+    if conn:
+        with conn:
+            conn.execute('''
+            CREATE TABLE IF NOT EXISTS image_attributes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                image_id INTEGER NOT NULL,
+                category TEXT,
+                bounding_box TEXT,
+                confidence REAL,
+                attributes TEXT,
+                FOREIGN KEY(image_id) REFERENCES user_images(id) ON DELETE CASCADE
+            );
+            ''')
+        conn.close()
+        print("image_attributes 테이블이 생성되었습니다.")
+
+def add_image_attributes(image_id, attributes):
+    conn = create_connection()
+    if conn:
+        with conn:
+            for item in attributes:
+                conn.execute('''
+                INSERT INTO image_attributes (image_id, category, bounding_box, confidence, attributes)
+                VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    image_id,
+                    item['category'],
+                    json.dumps(item['bounding_box']),
+                    item['confidence'],
+                    json.dumps(item['attributes'])
+                ))
+        conn.close()
+        print("이미지 속성 정보가 추가되었습니다.")
+# db.py에 추가
+
+def get_image_attributes(image_id):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT category, bounding_box, confidence, attributes
+            FROM image_attributes
+            WHERE image_id = ?
+        ''', (image_id,))
+        attributes = cursor.fetchall()
+        conn.close()
+        return attributes
+    return []
+
+# get_user_images 함수 수정
+def get_user_images(user_id):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        # 이미지 ID도 함께 반환
+        cursor.execute('SELECT id, filename, filepath, upload_date FROM user_images WHERE user_id = ? ORDER BY upload_date DESC', (user_id,))
+        images = cursor.fetchall()
+        conn.close()
+        return images
+    return []
+
+# 모든 의류 정보를 가져오는 함수
+def get_all_clothing_info(user_id):
+    conn = create_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT ua.category, ua.bounding_box, ua.confidence, ua.attributes
+            FROM user_images ui
+            JOIN image_attributes ua ON ui.id = ua.image_id
+            WHERE ui.user_id = ?
+        ''', (user_id,))
+        clothing_info = cursor.fetchall()
+        conn.close()
+        return clothing_info
+    return []
 
 # 테이블 생성
 def initialize_database():
     create_user_table()
     create_personal_info_table()
-    create_user_images_table()  # 추가된 부분
+    create_user_images_table()
+    create_image_attributes_table()  # 추가
 

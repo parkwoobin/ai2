@@ -17,6 +17,7 @@ if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
 # API 키 초기화
+# API 키 초기화
 if 'api_key' not in st.session_state:
     st.session_state.api_key = get_api_key(st.session_state.get('username', ''))
 
@@ -63,9 +64,9 @@ def show_chatbot_page():
 
     selected_image = None  # 선택된 이미지 초기화
     for index, img in enumerate(current_images):
-        filename, filepath, upload_date = img
+        image_id, filename, filepath, upload_date = img  # 수정된 부분
         with columns[index % num_columns]:
-            st.image(filepath, use_column_width=True)
+            st.image(filepath, use_container_width=True)
             # 선택 버튼
             if st.button(f"선택", key=f"select_{index}"):
                 selected_image = filepath

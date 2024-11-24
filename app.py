@@ -32,11 +32,15 @@ user_info = st.Page(
 upload = st.Page(
     "services/upload.py", title="이미지 업로드", icon=":material/image_search:"
     )
+getdb = st.Page(
+    "services/getdb.py", title="의류 정보 보기", icon=":material/visibility:"
+    )
+
 if st.session_state.logged_in:
     pg = st.navigation(
         {
             "Account": [logout_page],
-            "Reports": [chatbot, weather, user_info, upload],
+            "Reports": [chatbot, weather, user_info, upload, getdb],
         }
     )
 else:
